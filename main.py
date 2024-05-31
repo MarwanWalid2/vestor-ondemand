@@ -79,18 +79,25 @@ if st.button('Analyze Company'):
     if company_name:
         session_id = create_chat_session()
         if session_id:
-            query = f"what is the market price of {company_name}?"
+            query = f"What is the current market price of {company_name}?"
             answer = submit_query(session_id, query)
             if answer:
                 st.write(f"Market price of {company_name}: {answer}")
 
-        articles = get_news(NEWS_API_KEY, company_name)
-        if isinstance(articles, str):
-            st.error(articles)
+            articles = get_news(NEWS_API_KEY, company_name)
+            if isinstance(articles, str):
+                st.error(articles)
+            else:
+                for article in articles[:5]:
+                    full_text = retrieve_text_from_url(article['url'])
+                    st.write("Article Title:", article['title'])
+                    # st.write("Article Content:", full_text[:500] + "...")  # Display first 500 characters
+
+                    # Query the plugin for sentiment analysis
+                    sentiment_query = f"Please provide a sentiment score from 0 to 10 on how good this article is: {full_text}"
+                    sentiment_score = submit_query(session_id, sentiment_query)
+                    st.write("Sentiment Score:", sentiment_score)
         else:
-            for article in articles:
-                full_text = retrieve_text_from_url(article['url'])
-                st.write("Article Title:", article['title'])
-                st.write("Article Content:", full_text)
+            st.error("Stock symbol not found for the given company name.")
     else:
         st.error('Please enter a company name.')
